@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scientific Number Accepter</title>
+  <!-- Menggunakan Google Font Orbitron untuk kesan modern dan keren -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* Reset dasar */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: #111; /* Latar belakang hitam */
+      color: #eee;
+      display: flex;
+      justify-content: center;  /* Menyusun elemen di tengah secara horizontal */
+      align-items: center;      /* Menyusun elemen di tengah secara vertikal */
+      height: 100vh;            /* Tinggi layar penuh */
+      overflow-x: hidden;
+      position: relative;
+    }
+    /* Navigation Bar */
+    nav {
+      background: #1f1f1f;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 2;
+    }
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 20px;
+    }
+    nav ul li {
+      position: relative;
+      cursor: pointer;
+      padding: 5px 10px;
+      transition: all 0.3s ease;
+      font-weight: bold;
+    }
+    nav ul li:hover {
+      background: #DAA520; /* Warna emas */
+      border-radius: 5px;
+    }
+    /* Dropdown Menu untuk File dan Edit */
+    .dropdown {
+      display: none;
+      position: absolute;
+      top: 35px;
+      left: 0;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 5px;
+      min-width: 120px;
+      z-index: 2;
+    }
+    .dropdown li {
+      display: block;
+      padding: 8px 12px;
+    }
+    .dropdown li:hover {
+      background: #DAA520; /* Warna emas */
+    }
+    li.has-dropdown:hover .dropdown {
+      display: block;
+    }
+    /* Kontainer utama */
+    .container {
+      padding: 20px;
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 800px; /* Maksimal lebar konten */
+      text-align: center;
+    }
+    /* Editor area */
+    textarea {
+      width: 100%;
+      height: 200px;
+      background: #222;
+      border: 1px solid #333;
+      border-radius: 5px;
+      padding: 10px;
+      color: #eee;
+      font-size: 1.1em;
+      resize: vertical;
+    }
+    /* Tombol Run */
+    button#runBtn {
+      margin-top: 10px;
+      padding: 10px 20px;
+      background: #DAA520; /* Warna emas */
+      border: none;
+      border-radius: 5px;
+      font-size: 1.1em;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button#runBtn:hover {
+      background: #FFD700; /* Warna emas yang lebih terang */
+    }
+    /* Output message */
+    #output {
+      margin-top: 10px;
+      font-size: 1.2em;
+      min-height: 1.5em;
+    }
+    /* About Us Section */
+    #about {
+      display: none;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 1px solid #333;
+      border-radius: 5px;
+    }
+    #about h2 {
+      margin-bottom: 10px;
+      font-size: 1.8em;
+      text-decoration: underline;
+      color: #DAA520; /* Warna emas */
+    }
+    #about p {
+      margin-bottom: 8px;
+      font-size: 1.1em;
+    }
+    /* Animasi background percikan api */
+    .spark {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      background: radial-gradient(circle, rgba(255, 69, 0, 0.7), rgba(255, 165, 0, 0.7)); /* Percikan api */
+      border-radius: 50%;
+      animation: spark-animation 1s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes spark-animation {
+      0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: translateY(-20px) scale(1.5);
+        opacity: 0.6;
+      }
+      100% {
+        transform: translateY(100px) scale(0.3);
+        opacity: 0;
+      }
+    }
+    /* Animasi sentuhan pada font */
+    .animate-text {
+      display: inline-block;
+      animation: glow 1.5s ease-in-out infinite alternate;
+    }
+    @keyframes glow {
+      from { text-shadow: 0 0 5px #DAA520; }
+      to { text-shadow: 0 0 20px #FFD700; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Background percikan api -->
+  <div id="spark-container"></div>
+
+  <!-- Navigation Bar -->
+  <nav>
+    <ul>
+      <li class="has-dropdown">File
+        <ul class="dropdown">
+          <li onclick="saveFile()">Save</li>
+          <li onclick="saveAsFile()">Save As</li>
+        </ul>
+      </li>
+      <li class="has-dropdown">Edit
+        <ul class="dropdown">
+          <li onclick="copyText()">Copy</li>
+          <li onclick="pasteText()">Paste</li>
+        </ul>
+      </li>
+      <li onclick="runCode()">Run</li>
+      <li onclick="showAbout()">About Us</li>
+    </ul>
+  </nav>
+
+  <!-- Konten utama -->
+  <div class="container">
+    <!-- Editor untuk input scientific number -->
+    <textarea id="editor" placeholder="Masukkan angka dalam format scientific..."></textarea>
+    <br>
+    <button id="runBtn" onclick="runCode()">Run</button>
+    <div id="output"></div>
+    
+    <!-- Section About Us -->
+    <div id="about">
+      <h2 class="animate-text">About Us</h2>
+      <p>Nama: Sepri Tandira'pak</p>
+      <p>NIM: 231011060048</p>
+      <p>Kelas: Teori Bahasa dan Otomata B</p>
+      <p>Prodi: Sistem Informasi</p>
+      <button onclick="hideAbout()">Close</button>
+    </div>
+  </div>
+
+  <script>
+    // Fungsi validasi angka scientific menggunakan regular expression
+    function isScientificNumber(str) {
+      // Regex untuk mendeteksi angka dalam format scientific (contoh: 1.23e+10, -0.21, 123, dll)
+      const regex = /^[+-]?(\d+(\.\d+)?|\.\d+)(e[+-]?\d+)?$/i;
+      return regex.test(str.trim());
+    }
+
+    // Fungsi Run: cek input di editor
+    function runCode() {
+      const input = document.getElementById('editor').value;
+      const outputDiv = document.getElementById('output');
+      if(isScientificNumber(input)){
+        outputDiv.textContent = "Yes, it is a number";
+      } else {
+        outputDiv.textContent = "No, it is not a number";
+      }
+    }
+
+    // Fungsi Save: simpan konten editor sebagai file
+    function saveFile() {
+      const content = document.getElementById('editor').value;
+      const blob = new Blob([content], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = "document.txt";
+      a.click();
+    }
+
+    // Fungsi Save As: mirip dengan saveFile, namun bisa ditambahkan prompt untuk nama file
+    function saveAsFile() {
+      const fileName = prompt("Masukkan nama file:", "document.txt");
+      if(fileName !== null) {
+        const content = document.getElementById('editor').value;
+        const blob = new Blob([content], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = fileName;
+        a.click();
+      }
+    }
+
+    // Fungsi Copy: salin isi editor ke clipboard
+    function copyText() {
+      const editor = document.getElementById('editor');
+      editor.select();
+      document.execCommand("copy");
+      alert("Teks berhasil disalin!");
+    }
+
+    // Fungsi Paste: tempel teks dari clipboard ke editor (perlu izin dari browser)
+    async function pasteText() {
+      try {
+        const text = await navigator.clipboard.readText();
+        document.getElementById('editor').value += text;
+      } catch (err) {
+        alert("Gagal melakukan paste!");
+      }
+    }
+
+    // Tampilkan About Us
+    function showAbout() {
+      document.getElementById('about').style.display = 'block';
+    }
+
+    // Sembunyikan About Us
+    function hideAbout() {
+      document.getElementById('about').style.display = 'none';
+    }
+
+    // Fungsi untuk membuat percikan api
+    function createSpark() {
+      const spark = document.createElement('div');
+      spark.classList.add('spark');
+      // Atur posisi acak percikan api
+      spark.style.left = Math.random() * 100 + 'vw';
+      spark.style.top = Math.random() * 100 + 'vh';
+      document.getElementById('spark-container').appendChild(spark);
+      // Hapus percikan api setelah animasi selesai
+      spark.addEventListener('animationend', () => {
+        spark.remove();
+      });
+    }
+
+    // Interval untuk membuat percikan api secara terus menerus
+    setInterval(createSpark, 100);
+  </script>
+</body>
+</html>
